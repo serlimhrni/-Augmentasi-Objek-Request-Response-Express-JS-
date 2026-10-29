@@ -18,3 +18,10 @@ export interface TodoRow {
     task: string;
     is_completed: number | boolean;
 }
+
+export type Todo = {
+  id: number;
+  title: string;
+  completed: boolean;
+  createdAt: string;
+};

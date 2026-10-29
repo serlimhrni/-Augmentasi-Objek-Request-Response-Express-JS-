@@ -37,6 +37,7 @@ export const getTodos = async (req: Request, res: Response): Promise<void> => {
         sendError(res, 'Gagal mengambil data.', 500);
     }
 };
+
 // GET /api/todos/:id — Ambil satu todo berdasarkan ID
 export const getTodoById = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
@@ -70,6 +71,7 @@ export const createTodo = async (req: Request, res: Response): Promise<void> => 
         sendError(res, 'Gagal menambahkan tugas.', 500);
     }
 };
+
 // PUT /api/todos/:id — Update todo (ubah task atau tandai selesai)
 export const updateTodo = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
@@ -93,9 +95,15 @@ export const updateTodo = async (req: Request, res: Response): Promise<void> => 
 
 // DELETE /api/todos/:id — Hapus todo
 export const deleteTodo = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const userId = req.user.id;
     try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            sendError(res, 'Unauthorized: User tidak dikenali.', 401);
+            return;
+        }
+
         const affectedRows = await TodoModel.delete(Number(id), userId);
 
         if (affectedRows === 0) {
@@ -103,8 +111,9 @@ export const deleteTodo = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        sendSuccess(res, 'Tugas berhasil dihapus!');
-    } catch {
+        sendSuccess(res, 'Tugas berhasil dihapus!', null, 200);
+    } catch (error) {
+        console.error("ERROR DETAIL SAAT DELETE:", error);
         sendError(res, 'Gagal menghapus tugas.', 500);
     }
 };

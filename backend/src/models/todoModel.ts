@@ -38,30 +38,39 @@ export const TodoModel = {
     return result.insertId as number;
   },
 
-  update: async (
-    id: number,
-    task: string | undefined,
-    is_completed: boolean | undefined,
-    userId: number
-  ) => {
+  update: async (id: number, task: string | undefined, isCompleted: boolean | undefined, userId: number) => {
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (task !== undefined) {
+      fields.push('task = ?'); // Diperbaiki dari 'todo = ?' menjadi 'task = ?' sesuai kolom DB
+      values.push(task);
+    }
+
+    if (isCompleted !== undefined) {
+      fields.push('is_completed = ?');
+      values.push(isCompleted);
+    }
+
+    if (fields.length === 0) return 0;
+
+    values.push(id, userId);
+
     const [result]: any = await pool.query(
-      `UPDATE todos
-       SET task = COALESCE(?, task),
-           is_completed = COALESCE(?, is_completed)
-       WHERE id = ? AND user_id = ?`,
-      [task ?? null, is_completed ?? null, id, userId]
+      `UPDATE todos SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`,
+      values
     );
 
-    return result.affectedRows as number;
+    return result.affectedRows;
   },
 
-  delete: async (id: number, userId: number) => {
+  // MENAMBAHKAN FUNGSI DELETE YANG HILANG
+  delete: async (id: number, userId: number): Promise<number> => {
     const [result]: any = await pool.query(
       'DELETE FROM todos WHERE id = ? AND user_id = ?',
       [id, userId]
     );
 
-    return result.affectedRows as number;
-  }
-
+    return result.affectedRows;
+  },
 };
